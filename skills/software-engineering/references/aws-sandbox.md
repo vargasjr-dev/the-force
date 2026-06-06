@@ -1,6 +1,6 @@
 # AWS sandbox
 
-ApolloBot has SSH credentials to its own AWS sandbox — a Mac mini EC2
+The assistant has SSH credentials to its own AWS sandbox — a Mac mini EC2
 instance reserved for end-to-end QA work (running evals against a fresh
 assistant install, reproducing prod-only bugs, anything Docker-real).
 
@@ -11,7 +11,7 @@ ssh ec2-user@72.44.51.27
 ```
 
 - Key: `/workspace/.ssh/id_ed25519` (pub fingerprint
-  `SHA256:jUW697Yd3yRM4svTwGe7aSF7OgDiaQnVjldeX0Qs9Zw apollo@vellum`).
+  `SHA256:jUW697Yd3yRM4svTwGe7aSF7OgDiaQnVjldeX0Qs9Zw`).
 - **Gotcha**: SSH defaults to `~/.ssh/id_ed25519`, which for root is
   `/root/.ssh/`. The key only lives under `/workspace/.ssh/`, so a
   default-config ssh falls through to `Permission denied (publickey)`.

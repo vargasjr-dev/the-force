@@ -31,6 +31,27 @@ import { createSign } from "crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
+// ── Install-meta config ───────────────────────────────────────────────────────
+
+interface InstallMeta {
+  botSlug?: string;
+  botGitName?: string;
+  botGitEmail?: string;
+  githubOrg?: string;
+  defaultRepo?: string;
+}
+
+function loadInstallMeta(): InstallMeta {
+  const path = "/workspace/skills/software-engineering/install-meta.json";
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as InstallMeta;
+  } catch {
+    return {};
+  }
+}
+
+const installMeta = loadInstallMeta();
+
 const MAP_PATH = "/workspace/skills/software-engineering/data/pr-conversation-map.json";
 const ASSISTANT_DB_PATH = join(
   process.env.VELLUM_WORKSPACE_DIR || "/workspace",
@@ -106,8 +127,22 @@ if (!repo) {
   process.exit(1);
 }
 
-// Owner is hard-coded; all our repos live under vellum-ai (matches github-poll).
-const owner = "vellum-ai";
+// Owner comes from install-meta.json (githubOrg), falling back to inferring
+// from the git remote. All repos for a given assistant live under one org.
+const owner =
+  installMeta.githubOrg ??
+  (() => {
+    try {
+      const remote = execSync("git config --get remote.origin.url", {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+      const m = remote.match(/github\.com[:/]([^/]+)\//);
+      return m?.[1] ?? "vellum-ai";
+    } catch {
+      return "vellum-ai";
+    }
+  })();
 
 // ── Conversation auto-detection ──────────────────────────────
 
@@ -193,7 +228,7 @@ async function getInstallationToken(): Promise<string> {
   });
   if (!installRes.ok) throw new Error(`Failed to list installations: ${installRes.status}`);
   const installations = (await installRes.json()) as Array<{ id: number; account?: { login?: string } }>;
-  const installation = installations.find((i) => i.account?.login === "vellum-ai") || installations[0];
+  const installation = installations.find((i) => i.account?.login === owner) || installations[0];
   if (!installation) throw new Error("No installations found");
 
   const tokenRes = await fetch(`${GITHUB_API}/app/installations/${installation.id}/access_tokens`, {

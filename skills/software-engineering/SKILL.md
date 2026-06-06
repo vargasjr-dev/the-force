@@ -29,7 +29,7 @@ If `AGENTS.md` has a section on the area, **read it before writing code**. Don't
 
 ## AWS sandbox
 
-ApolloBot has SSH credentials to its own AWS sandbox for end-to-end QA
+The assistant has SSH credentials to its own AWS sandbox for end-to-end QA
 work (e.g. running evals against a fresh assistant install without
 torching the workstation). Don't ask Vargas where it is when a QA task
 comes up — go check `references/aws-sandbox.md` (or `hq` for the SSH

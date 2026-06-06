@@ -3,8 +3,8 @@
  * Create a worktree the right way.
  *
  * Conventions enforced:
- *   - Branch name is prefixed `apollo/`
- *   - Worktree path is `/workspace/repos/<repo>-wt/apollo/<name>`
+ *   - Branch name is prefixed `{botSlug}/` (read from install-meta.json)
+ *   - Worktree path is `/workspace/repos/<repo>-wt/{botSlug}/<name>`
  *   - Created from `origin/main` (after fetching), NOT local main HEAD
  *   - Remote URL is updated with the current token from the main checkout
  *   - Optionally symlinks node_modules from main checkout (skips a full `bun install`)
@@ -16,28 +16,65 @@
  *   worktree-create.ts --repo vellum-assistant --branch atl-444-fix
  *   worktree-create.ts --repo vellum-assistant-platform --branch dns-backend
  *
- * The `apollo/` prefix is added automatically if missing from --branch.
+ * The `{botSlug}/` prefix is added automatically if missing from --branch.
  */
 
 import { execSync } from "child_process";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
-// GitHub App bot identity — every commit ApolloBot authors must use this.
-// Verified at https://api.github.com/users/vellum-apollo-bot%5Bbot%5D — id 242025090.
-// Anything else (assistant@vellum.ai, apollo@vellum.ai, apollobot@…) is a bug.
-const BOT_GIT_NAME = "vellum-apollo-bot[bot]";
-const BOT_GIT_EMAIL =
-  "242025090+vellum-apollo-bot[bot]@users.noreply.github.com";
+// ── Install-meta config ───────────────────────────────────────────────────────
+// Bot identity and branch prefix are per-installation. Set these in
+// /workspace/skills/software-engineering/install-meta.json:
+//
+//   {
+//     "botSlug":    "apollo",                                          // branch prefix
+//     "botGitName": "vellum-apollo-bot[bot]",                         // git user.name
+//     "botGitEmail": "242025090+vellum-apollo-bot[bot]@users.noreply.github.com"
+//   }
+//
+// Verify bot user ID at: https://api.github.com/users/{botGitName}
+// Anything else is a bug — do not hard-code these values here.
+
+interface InstallMeta {
+  botSlug: string;
+  botGitName: string;
+  botGitEmail: string;
+  githubOrg?: string;
+  defaultRepo?: string;
+}
+
+function loadInstallMeta(): InstallMeta {
+  const path = "/workspace/skills/software-engineering/install-meta.json";
+  try {
+    const meta = JSON.parse(readFileSync(path, "utf8")) as Partial<InstallMeta>;
+    if (!meta.botSlug || !meta.botGitName || !meta.botGitEmail) {
+      throw new Error(
+        `install-meta.json is missing required fields: botSlug, botGitName, botGitEmail`,
+      );
+    }
+    return meta as InstallMeta;
+  } catch (err) {
+    throw new Error(
+      `Could not load install-meta.json from ${path}. ` +
+        `Set botSlug, botGitName, and botGitEmail for this installation.\n${err}`,
+    );
+  }
+}
+
+const meta = loadInstallMeta();
+const BOT_SLUG = meta.botSlug;
+const BOT_GIT_NAME = meta.botGitName;
+const BOT_GIT_EMAIL = meta.botGitEmail;
 
 const USAGE = `Usage: worktree-create.ts --repo <repo> --branch <name> [--no-symlink]
 
-Creates a worktree at /workspace/repos/<repo>-wt/apollo/<name> from origin/main.
-The "apollo/" prefix is added automatically if missing from --branch.
+Creates a worktree at /workspace/repos/<repo>-wt/${BOT_SLUG}/<name> from origin/main.
+The "${BOT_SLUG}/" prefix is added automatically if missing from --branch.
 
 Options:
   --repo <repo>       Repository name (e.g. vellum-assistant)
-  --branch <name>     Branch name (apollo/ prefix added automatically)
+  --branch <name>     Branch name (${BOT_SLUG}/ prefix added automatically)
   --no-symlink        Skip symlinking node_modules from the main checkout
   -h, --help          Show this help
 
@@ -91,12 +128,13 @@ function run(
 
 function main(): void {
   const args = parseArgs(process.argv.slice(2));
-  const branchName = args.branch.startsWith("apollo/")
+  const prefix = `${BOT_SLUG}/`;
+  const branchName = args.branch.startsWith(prefix)
     ? args.branch
-    : `apollo/${args.branch}`;
-  const branchSuffix = branchName.replace(/^apollo\//, "");
+    : `${prefix}${args.branch}`;
+  const branchSuffix = branchName.slice(prefix.length);
   const repoPath = `/workspace/repos/${args.repo}`;
-  const worktreePath = `/workspace/repos/${args.repo}-wt/apollo/${branchSuffix}`;
+  const worktreePath = `/workspace/repos/${args.repo}-wt/${BOT_SLUG}/${branchSuffix}`;
 
   if (!existsSync(repoPath)) {
     console.error(`❌ Repo not found: ${repoPath}`);
@@ -142,7 +180,7 @@ function main(): void {
 
   // Pin the bot identity per-worktree, even though it should be inherited from
   // the global gitconfig. Belt-and-suspenders: a stale per-repo override would
-  // silently re-route commits to assistant@vellum.ai otherwise.
+  // silently re-route commits to the container default otherwise.
   run(`git config user.name "${BOT_GIT_NAME}"`, { cwd: worktreePath });
   run(`git config user.email "${BOT_GIT_EMAIL}"`, { cwd: worktreePath });
 

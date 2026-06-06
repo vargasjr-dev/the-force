@@ -2,7 +2,7 @@
 /**
  * One-shot backfill for `pr-conversation-map.json`.
  *
- * For each currently-open PR authored by Apollo, find the conversation that
+ * For each currently-open PR authored by this assistant, find the conversation that
  * most recently mentioned the PR's specific URL — excluding the conversation
  * that's running this script (so we don't collapse every PR onto the live
  * conversation, which is the very bug we're fixing).
@@ -23,6 +23,28 @@ import { Database } from "bun:sqlite";
 import { createSign } from "crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
+
+// ── Install-meta config ───────────────────────────────────────────────────────
+
+interface InstallMeta {
+  botSlug?: string;
+  botGitName?: string;
+  botGitEmail?: string;
+  githubOrg?: string;
+  defaultRepo?: string;
+}
+
+function loadInstallMeta(): InstallMeta {
+  const path = "/workspace/skills/software-engineering/install-meta.json";
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as InstallMeta;
+  } catch {
+    return {};
+  }
+}
+
+const installMeta = loadInstallMeta();
+const GITHUB_ORG = installMeta.githubOrg ?? "vellum-ai";
 
 const MAP_PATH = "/workspace/skills/software-engineering/data/pr-conversation-map.json";
 const CONVERSATIONS_DIR = "/workspace/conversations";
@@ -82,7 +104,7 @@ async function getInstallationToken(): Promise<string> {
     headers: { Authorization: `Bearer ${jwt}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
   });
   const installations = (await installRes.json()) as Array<{ id: number; account?: { login?: string } }>;
-  const installation = installations.find((i) => i.account?.login === "vellum-ai") || installations[0];
+  const installation = installations.find((i) => i.account?.login === GITHUB_ORG) || installations[0];
   if (!installation) throw new Error("No installations found");
   const tokenRes = await fetch(`${GITHUB_API}/app/installations/${installation.id}/access_tokens`, {
     method: "POST",
@@ -112,7 +134,7 @@ async function getAppSlug(): Promise<string> {
 type OpenPR = { owner: string; repo: string; number: number; title: string };
 
 async function discoverOpenPRs(token: string, appSlug: string): Promise<OpenPR[]> {
-  const query = `is:pr is:open author:app/${appSlug} org:vellum-ai`;
+  const query = `is:pr is:open author:app/${appSlug} org:${GITHUB_ORG}`;
   const res = await fetch(
     `${GITHUB_API}/search/issues?q=${encodeURIComponent(query)}&per_page=100&sort=updated&order=desc`,
     { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" } },
