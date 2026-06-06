@@ -32,7 +32,7 @@ Scope discipline, post-open registration, iteration on review feedback, post-mer
 
 12. **Send the full PR URL on every iteration push.** Vargas often says "Link me" — make him not have to.
 
-13. **On merge, run `worktree-cleanup.ts`.** Auto-detects the repo from the current dir, removes the worktree at `/workspace/repos/<repo>-wt/apollo/<name>`, deletes the local branch:
+13. **On merge, run `worktree-cleanup.ts`.** Auto-detects the repo from the current dir, removes the worktree at `/workspace/repos/<repo>-wt/{botSlug}/<name>`, deletes the local branch:
     ```bash
     bun run /workspace/skills/software-engineering/scripts/worktree-cleanup.ts \
       --branch <name>

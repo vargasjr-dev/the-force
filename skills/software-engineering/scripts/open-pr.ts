@@ -1,9 +1,11 @@
 #!/usr/bin/env bun
 /**
- * Open a pull request against vellum-ai/vellum-assistant via the GitHub API.
+ * Open a pull request via the GitHub API.
  *
  * Uses the installation token already configured on the worktree's `origin`
  * remote (set by `hq auth`). No daemon secrets API call needed.
+ *
+ * The default repo is read from install-meta.json (`githubOrg`/`defaultRepo`).
  *
  * After opening, optionally calls register-pr.ts to wire the conversation map.
  *
@@ -13,7 +15,7 @@
  *     --body-file <path> \
  *     [--base main] \
  *     [--head <branch>]    # defaults to current branch
- *     [--repo vellum-ai/vellum-assistant]
+ *     [--repo <org>/<repo>]  # defaults to githubOrg/defaultRepo from install-meta.json
  *     [--draft]
  *     [--register]         # auto-call register-pr.ts on success
  *
@@ -22,6 +24,25 @@
 
 import { execSync, spawnSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
+
+// ── Install-meta config ───────────────────────────────────────────────────────
+
+interface InstallMeta {
+  botSlug?: string;
+  botGitName?: string;
+  botGitEmail?: string;
+  githubOrg?: string;
+  defaultRepo?: string;
+}
+
+function loadInstallMeta(): InstallMeta {
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as InstallMeta;
+  } catch {
+    return {};
+  }
+}
 
 function parseArgs(argv: string[]): Record<string, string | boolean> {
   const out: Record<string, string | boolean> = {};
@@ -56,6 +77,7 @@ function extractTokenFromRemote(remoteUrl: string): string {
 }
 
 async function main() {
+  const installMeta = loadInstallMeta();
   const args = parseArgs(process.argv.slice(2));
 
   const title = args.title as string | undefined;
@@ -80,7 +102,16 @@ async function main() {
 
   const base = (args.base as string) || "main";
   const head = (args.head as string) || sh("git rev-parse --abbrev-ref HEAD");
-  const repo = (args.repo as string) || "vellum-ai/vellum-assistant";
+  const defaultRepo =
+    installMeta.githubOrg && installMeta.defaultRepo
+      ? `${installMeta.githubOrg}/${installMeta.defaultRepo}`
+      : undefined;
+  const repo = (args.repo as string) || defaultRepo;
+  if (!repo) {
+    throw new Error(
+      `--repo is required (or set githubOrg + defaultRepo in install-meta.json)`,
+    );
+  }
   const draft = Boolean(args.draft);
   const register = Boolean(args.register);
 
