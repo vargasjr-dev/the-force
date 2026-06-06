@@ -42,11 +42,18 @@ interface InstallMeta {
 }
 
 function loadInstallMeta(): InstallMeta {
-  const path = "/workspace/skills/software-engineering/install-meta.json";
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as InstallMeta;
-  } catch {
-    return {};
+    const profile = JSON.parse(readFileSync(path, "utf8")) as Partial<InstallMeta>;
+    if (!profile.githubOrg) {
+      throw new Error(`profile.json is missing required field: githubOrg`);
+    }
+    return profile as InstallMeta;
+  } catch (err) {
+    throw new Error(
+      `Could not load profile from ${path}. ` +
+        `See references/setup.md for first-time setup instructions.\n${err}`,
+    );
   }
 }
 
@@ -127,22 +134,8 @@ if (!repo) {
   process.exit(1);
 }
 
-// Owner comes from install-meta.json (githubOrg), falling back to inferring
-// from the git remote. All repos for a given assistant live under one org.
-const owner =
-  installMeta.githubOrg ??
-  (() => {
-    try {
-      const remote = execSync("git config --get remote.origin.url", {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-      }).trim();
-      const m = remote.match(/github\.com[:/]([^/]+)\//);
-      return m?.[1] ?? "vellum-ai";
-    } catch {
-      return "vellum-ai";
-    }
-  })();
+// Owner comes from profile.json (githubOrg). Required — loadInstallMeta() throws if missing.
+const owner = installMeta.githubOrg;
 
 // ── Conversation auto-detection ──────────────────────────────
 

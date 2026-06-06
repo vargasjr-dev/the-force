@@ -3,7 +3,7 @@
  * Create a worktree the right way.
  *
  * Conventions enforced:
- *   - Branch name is prefixed `{botSlug}/` (read from install-meta.json)
+ *   - Branch name is prefixed `{botSlug}/` (read from assets/profile.json)
  *   - Worktree path is `/workspace/repos/<repo>-wt/{botSlug}/<name>`
  *   - Created from `origin/main` (after fetching), NOT local main HEAD
  *   - Remote URL is updated with the current token from the main checkout
@@ -23,20 +23,20 @@ import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
-// ── Install-meta config ───────────────────────────────────────────────────────
+// ── Profile config ────────────────────────────────────────────────────────────
 // Bot identity and branch prefix are per-installation. Set these in
-// /workspace/skills/software-engineering/install-meta.json:
+// /workspace/skills/software-engineering/assets/profile.json:
 //
 //   {
-//     "botSlug":    "apollo",                                          // branch prefix
-//     "botGitName": "vellum-apollo-bot[bot]",                         // git user.name
-//     "botGitEmail": "242025090+vellum-apollo-bot[bot]@users.noreply.github.com"
+//     "botSlug":    "<slug>",                                          // branch prefix
+//     "botGitName": "<org>-<slug>[bot]",                              // git user.name
+//     "botGitEmail": "<id>+<org>-<slug>[bot]@users.noreply.github.com"
 //   }
 //
 // Verify bot user ID at: https://api.github.com/users/{botGitName}
-// Anything else is a bug — do not hard-code these values here.
+// See references/setup.md for first-time setup instructions.
 
-interface InstallMeta {
+interface Profile {
   botSlug: string;
   botGitName: string;
   botGitEmail: string;
@@ -44,28 +44,28 @@ interface InstallMeta {
   defaultRepo?: string;
 }
 
-function loadInstallMeta(): InstallMeta {
-  const path = "/workspace/skills/software-engineering/install-meta.json";
+function loadProfile(): Profile {
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
   try {
-    const meta = JSON.parse(readFileSync(path, "utf8")) as Partial<InstallMeta>;
-    if (!meta.botSlug || !meta.botGitName || !meta.botGitEmail) {
+    const profile = JSON.parse(readFileSync(path, "utf8")) as Partial<Profile>;
+    if (!profile.botSlug || !profile.botGitName || !profile.botGitEmail) {
       throw new Error(
-        `install-meta.json is missing required fields: botSlug, botGitName, botGitEmail`,
+        `profile.json is missing required fields: botSlug, botGitName, botGitEmail`,
       );
     }
-    return meta as InstallMeta;
+    return profile as Profile;
   } catch (err) {
     throw new Error(
-      `Could not load install-meta.json from ${path}. ` +
-        `Set botSlug, botGitName, and botGitEmail for this installation.\n${err}`,
+      `Could not load profile from ${path}. ` +
+        `See references/setup.md for first-time setup instructions.\n${err}`,
     );
   }
 }
 
-const meta = loadInstallMeta();
-const BOT_SLUG = meta.botSlug;
-const BOT_GIT_NAME = meta.botGitName;
-const BOT_GIT_EMAIL = meta.botGitEmail;
+const profile = loadProfile();
+const BOT_SLUG = profile.botSlug;
+const BOT_GIT_NAME = profile.botGitName;
+const BOT_GIT_EMAIL = profile.botGitEmail;
 
 const USAGE = `Usage: worktree-create.ts --repo <repo> --branch <name> [--no-symlink]
 

@@ -35,16 +35,23 @@ interface InstallMeta {
 }
 
 function loadInstallMeta(): InstallMeta {
-  const path = "/workspace/skills/software-engineering/install-meta.json";
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as InstallMeta;
-  } catch {
-    return {};
+    const profile = JSON.parse(readFileSync(path, "utf8")) as Partial<InstallMeta>;
+    if (!profile.githubOrg) {
+      throw new Error(`profile.json is missing required field: githubOrg`);
+    }
+    return profile as InstallMeta;
+  } catch (err) {
+    throw new Error(
+      `Could not load profile from ${path}. ` +
+        `See references/setup.md for first-time setup instructions.\n${err}`,
+    );
   }
 }
 
 const installMeta = loadInstallMeta();
-const GITHUB_ORG = installMeta.githubOrg ?? "vellum-ai";
+const GITHUB_ORG = installMeta.githubOrg;
 
 const MAP_PATH = "/workspace/skills/software-engineering/data/pr-conversation-map.json";
 const CONVERSATIONS_DIR = "/workspace/conversations";

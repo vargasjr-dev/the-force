@@ -36,7 +36,7 @@ interface InstallMeta {
 }
 
 function loadInstallMeta(): InstallMeta {
-  const path = "/workspace/skills/software-engineering/install-meta.json";
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
   try {
     return JSON.parse(readFileSync(path, "utf8")) as InstallMeta;
   } catch {

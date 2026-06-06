@@ -4,7 +4,7 @@
  *
  * Removes the worktree, deletes the local branch, and reports what it did.
  * Auto-detects the repo by searching all `*-wt/{botSlug}/*` worktrees if --repo
- * is not specified. The botSlug is read from install-meta.json.
+ * is not specified. The botSlug is read from assets/profile.json.
  *
  * Usage:
  *   bun run scripts/worktree-cleanup.ts --branch <name> [--repo <repo>] [--keep-branch]
@@ -20,9 +20,9 @@ import { execSync } from "child_process";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
-// ── Install-meta config ───────────────────────────────────────────────────────
+// ── Profile config ────────────────────────────────────────────────────────────
 
-interface InstallMeta {
+interface Profile {
   botSlug: string;
   botGitName: string;
   botGitEmail: string;
@@ -30,24 +30,24 @@ interface InstallMeta {
   defaultRepo?: string;
 }
 
-function loadInstallMeta(): InstallMeta {
-  const path = "/workspace/skills/software-engineering/install-meta.json";
+function loadProfile(): Profile {
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
   try {
-    const meta = JSON.parse(readFileSync(path, "utf8")) as Partial<InstallMeta>;
-    if (!meta.botSlug) {
-      throw new Error(`install-meta.json is missing required field: botSlug`);
+    const profile = JSON.parse(readFileSync(path, "utf8")) as Partial<Profile>;
+    if (!profile.botSlug) {
+      throw new Error(`profile.json is missing required field: botSlug`);
     }
-    return meta as InstallMeta;
+    return profile as Profile;
   } catch (err) {
     throw new Error(
-      `Could not load install-meta.json from ${path}. ` +
-        `Set botSlug for this installation.\n${err}`,
+      `Could not load profile from ${path}. ` +
+        `See references/setup.md for first-time setup instructions.\n${err}`,
     );
   }
 }
 
-const meta = loadInstallMeta();
-const BOT_SLUG = meta.botSlug;
+const profile = loadProfile();
+const BOT_SLUG = profile.botSlug;
 
 const USAGE = `Usage: worktree-cleanup.ts --branch <name> [--repo <repo>] [--keep-branch]
 

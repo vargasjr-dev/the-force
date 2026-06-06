@@ -1,0 +1,5 @@
+# Per-installation harness file — generated at install time, never commit
+skills/software-engineering/install-meta.json
+
+# Per-installation profile — copy from assets/profile-example.json and fill in locally
+skills/software-engineering/assets/profile.json
