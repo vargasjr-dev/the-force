@@ -1,0 +1,14 @@
+{
+  "name": "@vellumai/the-force",
+  "version": "0.0.1",
+  "description": "Skills and capabilities to perfect the ways of the ajedic arts — software engineering workflows, PR lifecycle, and workspace tooling for VargasJR.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "peerDependencies": {
+    "@vellumai/plugin-api": "^0.8.0"
+  }
+}
