@@ -1,7 +1,7 @@
 {
   "name": "the-force",
-  "version": "0.0.1",
-  "description": "Skills and capabilities to perfect the ways of the ajedic arts — software engineering workflows, PR lifecycle, and workspace tooling for VargasJR.",
+  "version": "0.1.0",
+  "description": "Shared plugin for personal assistants: PR-link auto-hyperlinking hooks and the software-engineering skill.",
   "private": true,
   "license": "MIT",
   "type": "module",
