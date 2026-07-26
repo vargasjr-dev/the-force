@@ -1,0 +1,7 @@
+{
+  "botSlug": "<slug>",
+  "botGitName": "<org>-<slug>[bot]",
+  "botGitEmail": "<github-app-user-id>+<org>-<slug>[bot]@users.noreply.github.com",
+  "githubOrg": "<github-org>",
+  "defaultRepo": "<default-repo>"
+}

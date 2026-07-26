@@ -1,5 +1,5 @@
 {
-  "name": "@vellumai/the-force",
+  "name": "the-force",
   "version": "0.1.0",
   "description": "Shared plugin for personal assistants: PR-link auto-hyperlinking hooks and the software-engineering skill.",
   "private": true,

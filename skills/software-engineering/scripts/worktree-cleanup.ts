@@ -3,8 +3,8 @@
  * Post-merge / post-close worktree cleanup.
  *
  * Removes the worktree, deletes the local branch, and reports what it did.
- * Auto-detects the repo by searching all `*-wt/apollo/*` worktrees if --repo
- * is not specified.
+ * Auto-detects the repo by searching all `*-wt/{botSlug}/*` worktrees if --repo
+ * is not specified. The botSlug is read from assets/profile.json.
  *
  * Usage:
  *   bun run scripts/worktree-cleanup.ts --branch <name> [--repo <repo>] [--keep-branch]
@@ -13,19 +13,48 @@
  *   worktree-cleanup.ts --branch atl-444-fix
  *   worktree-cleanup.ts --branch dns-backend --repo vellum-assistant-platform
  *
- * The `apollo/` prefix is added automatically if missing from --branch.
+ * The `{botSlug}/` prefix is added automatically if missing from --branch.
  */
 
 import { execSync } from "child_process";
-import { existsSync, readdirSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
+
+// ── Profile config ────────────────────────────────────────────────────────────
+
+interface Profile {
+  botSlug: string;
+  botGitName: string;
+  botGitEmail: string;
+  githubOrg?: string;
+  defaultRepo?: string;
+}
+
+function loadProfile(): Profile {
+  const path = "/workspace/skills/software-engineering/assets/profile.json";
+  try {
+    const profile = JSON.parse(readFileSync(path, "utf8")) as Partial<Profile>;
+    if (!profile.botSlug) {
+      throw new Error(`profile.json is missing required field: botSlug`);
+    }
+    return profile as Profile;
+  } catch (err) {
+    throw new Error(
+      `Could not load profile from ${path}. ` +
+        `See references/setup.md for first-time setup instructions.\n${err}`,
+    );
+  }
+}
+
+const profile = loadProfile();
+const BOT_SLUG = profile.botSlug;
 
 const USAGE = `Usage: worktree-cleanup.ts --branch <name> [--repo <repo>] [--keep-branch]
 
 Removes a worktree and (by default) deletes the local branch.
 
 Options:
-  --branch <name>      Branch name (apollo/ prefix added automatically)
+  --branch <name>      Branch name (${BOT_SLUG}/ prefix added automatically)
   --repo <repo>        Repository name (auto-detected if omitted)
   --keep-branch        Don't delete the local branch
   -h, --help           Show this help
@@ -78,7 +107,7 @@ function findRepoForBranch(branchSuffix: string): string | null {
   const entries = readdirSync(reposRoot, { withFileTypes: true });
   for (const entry of entries) {
     if (!entry.isDirectory() || !entry.name.endsWith("-wt")) continue;
-    const candidate = join(reposRoot, entry.name, "apollo", branchSuffix);
+    const candidate = join(reposRoot, entry.name, BOT_SLUG, branchSuffix);
     if (existsSync(candidate)) {
       return entry.name.replace(/-wt$/, "");
     }
@@ -88,10 +117,11 @@ function findRepoForBranch(branchSuffix: string): string | null {
 
 function main(): void {
   const args = parseArgs(process.argv.slice(2));
-  const branchName = args.branch.startsWith("apollo/")
+  const prefix = `${BOT_SLUG}/`;
+  const branchName = args.branch.startsWith(prefix)
     ? args.branch
-    : `apollo/${args.branch}`;
-  const branchSuffix = branchName.replace(/^apollo\//, "");
+    : `${prefix}${args.branch}`;
+  const branchSuffix = branchName.slice(prefix.length);
 
   const repo = args.repo ?? findRepoForBranch(branchSuffix);
   if (!repo) {
@@ -102,7 +132,7 @@ function main(): void {
   }
 
   const repoPath = `/workspace/repos/${repo}`;
-  const worktreePath = `/workspace/repos/${repo}-wt/apollo/${branchSuffix}`;
+  const worktreePath = `/workspace/repos/${repo}-wt/${BOT_SLUG}/${branchSuffix}`;
 
   let removedWorktree = false;
   if (existsSync(worktreePath)) {

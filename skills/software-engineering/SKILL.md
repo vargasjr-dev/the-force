@@ -27,15 +27,6 @@ If `AGENTS.md` has a section on the area, **read it before writing code**. Don't
 - **`scripts/`** — actual tooling. Each script is documented in the reference that covers its workflow.
 - **`data/`** — runtime data (e.g. `pr-conversation-map.json`).
 
-## AWS sandbox
-
-ApolloBot has SSH credentials to its own AWS sandbox for end-to-end QA
-work (e.g. running evals against a fresh assistant install without
-torching the workstation). Don't ask Vargas where it is when a QA task
-comes up — go check `references/aws-sandbox.md` (or `hq` for the SSH
-helper) first. The sandbox is the canonical place to dry-run a real
-benchmark sweep before promising numbers.
-
 ## Reference index
 
 | File | Covers |
@@ -51,5 +42,6 @@ benchmark sweep before promising numbers.
 | `naming.md` | Name things by what they are, not the subsystem that introduced them. |
 | `pr-lifecycle.md` | Scope discipline, post-open registration, iteration, post-merge. Trust CI. Documents `register-pr.ts` + `worktree-cleanup.ts`. |
 | `protocols.md` | Spec compliance for SSE/HTTP/WS, cross-origin credentials, transport tagging. |
+| `setup.md` | First-time setup — create `assets/profile.json` from the example template. |
 | `unit-testing.md` | Mock I/O aggressively, never mock our own code. Determinism, structure, edge cases. |
 | `workstreams.md` | Plan-doc conventions, Linear integration, the workstream record template. |
