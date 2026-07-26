@@ -1,0 +1,14 @@
+{
+  "name": "@vellumai/the-force",
+  "version": "0.1.0",
+  "description": "Shared plugin for personal assistants: PR-link auto-hyperlinking hooks and the software-engineering skill.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "peerDependencies": {
+    "@vellumai/plugin-api": "^0.8.0"
+  }
+}
