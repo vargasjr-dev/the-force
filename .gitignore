@@ -3,3 +3,6 @@ skills/software-engineering/install-meta.json
 
 # Per-installation profile — copy from assets/profile-example.json and fill in locally
 skills/software-engineering/assets/profile.json
+
+# Runtime state; the directory itself is part of the plugin package.
+data/pr-link-state.json

@@ -42,7 +42,9 @@ Scope discipline, post-open registration, iteration on review feedback, post-mer
 
 15. **Check `merged`, not just `state`.** PRs can be silently closed without merge. `state=closed` + `merged=true` = landed. `state=closed` + `merged=false` = abandoned/rejected. Treat them differently.
 
-16. **Review feedback that forces a new abstraction is a follow-up, not an expansion.** If addressing a review comment would introduce a new helper type / defaults system / cross-cutting refactor that the original PR didn't have, *stop* and ask whether it belongs in this PR or a follow-up. Default to the follow-up. The narrower diff lands faster, the abstraction gets its own review thread, and the original concern doesn't get buried. Rule #1 is the principle; this rule is its review-time corollary.
+16. **Cross-hook state must live in plugin data, not module memory.** Hook modules can be reloaded or run in a fresh daemon process; any state that must survive across hooks or turns belongs in the plugin's `data/` directory, with the lifetime documented next to the store.
+
+17. **Review feedback that forces a new abstraction is a follow-up, not an expansion.** If addressing a review comment would introduce a new helper type / defaults system / cross-cutting refactor that the original PR didn't have, *stop* and ask whether it belongs in this PR or a follow-up. Default to the follow-up. The narrower diff lands faster, the abstraction gets its own review thread, and the original concern doesn't get buried. Rule #1 is the principle; this rule is its review-time corollary.
 
 17. **Touch a `package.json` → commit the matching `bun.lock` in the same change.** Every CI job runs `bun install --frozen-lockfile`; an unrefreshed lockfile errors out before any actual check (lint, typecheck, test, build) runs — so the logs *look* like five things failed when really it's one missing commit. Reflex: after editing any `package.json`, run `bun install` in that directory and `git add <dir>/bun.lock` alongside the manifest. Don't trust a clean tsc run locally to mean you remembered the lockfile — local installs may already have the dep on disk from prior work in the worktree.
 
