@@ -1,16 +1,12 @@
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 /**
  * Per-conversation PR state for the-force PR-linking hooks.
  *
- * The `post-tool-use` hook detects `git push` in bash tool calls and does two
- * things with the pushed worktree's origin remote:
- *
- *   1. Records the origin repo slug (`owner/repo`) as the conversation's
- *      "most recent push" target. The `post-model-call` hook uses this to
- *      hyperlink bare `PR #NNN` references to the correct GitHub repo, rather
- *      than guessing from the PR number.
- *   2. Resolves the branch's PR URL via the GitHub API and stores it so the
- *      `post-model-call` hook can append it to the final reply if the model
- *      didn't already mention it.
+ * Hook modules can be reloaded or run in a fresh daemon process, so this state
+ * lives in the plugin's data directory rather than in module-level Maps.
  *
  * Two different lifetimes:
  *   - The PR URL is per-turn: the `stop` hook clears it so the next run starts
@@ -20,28 +16,47 @@
  *     the turn that pushed. It is NOT cleared by `stop`.
  */
 
-/** PR URLs discovered during this run, keyed by conversation ID. */
-const prLinks = new Map<string, string>();
+type Store = {
+  prLinks: Record<string, string>;
+  pushRepos: Record<string, string>;
+};
 
-/**
- * Origin repo slug (`owner/repo`) of the most recent `git push` in each
- * conversation. Persists across turns — see module docstring.
- */
-const pushRepos = new Map<string, string>();
+const DATA_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "data");
+const STORE_PATH = join(DATA_DIR, "pr-link-state.json");
+function readStore(): Store {
+  try {
+    const parsed = JSON.parse(readFileSync(STORE_PATH, "utf8")) as Partial<Store>;
+    return {
+      prLinks: parsed.prLinks ?? {},
+      pushRepos: parsed.pushRepos ?? {},
+    };
+  } catch {
+    return { prLinks: {}, pushRepos: {} };
+  }
+}
+
+function writeStore(store: Store): void {
+  mkdirSync(DATA_DIR, { recursive: true });
+  writeFileSync(STORE_PATH, `${JSON.stringify(store, null, 2)}\n`, "utf8");
+}
 
 /** Get the PR URL for a conversation, if one was discovered this run. */
 export function getPrLink(conversationId: string): string | undefined {
-  return prLinks.get(conversationId);
+  return readStore().prLinks[conversationId];
 }
 
 /** Store the PR URL for a conversation. */
 export function setPrLink(conversationId: string, url: string): void {
-  prLinks.set(conversationId, url);
+  const store = readStore();
+  store.prLinks[conversationId] = url;
+  writeStore(store);
 }
 
-/** Clear the PR URL for a conversation. Called by the `stop` hook. */
+/** Clear the PR URL for a conversation. Called by the stop hook. */
 export function clearPrLink(conversationId: string): void {
-  prLinks.delete(conversationId);
+  const store = readStore();
+  delete store.prLinks[conversationId];
+  writeStore(store);
 }
 
 /**
@@ -49,10 +64,12 @@ export function clearPrLink(conversationId: string): void {
  * conversation, if any push has been observed.
  */
 export function getPushRepo(conversationId: string): string | undefined {
-  return pushRepos.get(conversationId);
+  return readStore().pushRepos[conversationId];
 }
 
 /** Record the origin repo slug (`owner/repo`) of the most recent push. */
 export function setPushRepo(conversationId: string, repo: string): void {
-  pushRepos.set(conversationId, repo);
+  const store = readStore();
+  store.pushRepos[conversationId] = repo;
+  writeStore(store);
 }
