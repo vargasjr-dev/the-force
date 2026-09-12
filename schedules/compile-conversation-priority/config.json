@@ -1,0 +1,9 @@
+{
+  "expression": "*/5 * * * *",
+  "expression_syntax": "cron",
+  "description": "Compiles one deterministic live-task priority snapshot for the conversation-priority app and Slack Home.",
+  "max_retries": 2,
+  "retry_backoff_ms": 30000,
+  "timeout_ms": 120000,
+  "quiet": true
+}

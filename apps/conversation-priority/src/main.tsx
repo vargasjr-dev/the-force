@@ -1,58 +1,55 @@
 /// <reference types="@vellumai/plugin-api/app" />
 
 import { render } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useId, useState } from "preact/hooks";
 
 import "./styles.css";
 
 const DATA_URL = "/v1/x/plugins/the-force/conversation-priority";
 
 type Source = "apollo" | "cursor";
-type CursorStatus = "connected" | "not-connected" | "unavailable";
+type WorkStatus = "working" | "open" | "finished" | "cancelled" | "failed";
+
+type ScoreComponent = {
+  id: string;
+  label: string;
+  score: number;
+  detail: string;
+};
 
 type WorkItem = {
   id: string;
   source: Source;
   title: string;
   updatedAt: number;
-  score: number;
-  status: "working" | "open";
+  priority: {
+    score: number;
+    components: ScoreComponent[];
+  };
+  status: WorkStatus;
   action: {
     kind: "open-conversation" | "open-url";
-    label: string;
     url?: string;
   };
 };
 
 type DeskPayload = {
   generatedAt: number;
-  ranking: "last-updated";
-  sources: {
-    apollo: { activeCount: number };
-    cursor: { activeCount: number; status: CursorStatus };
-  };
   items: WorkItem[];
 };
 
-function relativeTime(timestamp: number): string {
-  const delta = Math.max(0, Date.now() - timestamp);
-  const minutes = Math.floor(delta / 60_000);
-  if (minutes < 1) return "now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+function totalLabel(count: number): string {
+  return `${count} live task${count === 1 ? "" : "s"}`;
 }
 
-function scoreLabel(score: number): string {
-  return score > 0
-    ? Math.floor(score / 1_000).toLocaleString("en-US")
-    : "unknown";
-}
-
-function actionLabel(item: WorkItem): string {
-  return item.source === "apollo" ? "Open chat" : "Open agent";
+function statusLabel(item: WorkItem): string {
+  if (item.source === "apollo") {
+    return item.status === "working" ? "working" : "open";
+  }
+  if (item.status === "working") return "working";
+  if (item.status === "finished") return "finished";
+  if (item.status === "cancelled") return "cancelled";
+  return "failed";
 }
 
 function App() {
@@ -66,11 +63,20 @@ function App() {
     setError(null);
     try {
       const response = await window.vellum.fetch(DATA_URL);
-      if (!response.ok)
-        throw new Error(`Could not load the queue (${response.status})`);
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: unknown;
+        } | null;
+        throw new Error(
+          typeof body?.error === "string"
+            ? body.error
+            : `Could not load the queue (${response.status})`,
+        );
+      }
       const next = (await response.json()) as DeskPayload;
-      if (!next || !Array.isArray(next.items))
+      if (!next || !Array.isArray(next.items)) {
         throw new Error("The queue returned an unexpected response");
+      }
       setPayload(next);
     } catch (reason) {
       setError(
@@ -84,15 +90,6 @@ function App() {
   useEffect(() => {
     void load();
   }, []);
-
-  const apolloItems = useMemo(
-    () => payload?.items.filter((item) => item.source === "apollo") ?? [],
-    [payload],
-  );
-  const cursorItems = useMemo(
-    () => payload?.items.filter((item) => item.source === "cursor") ?? [],
-    [payload],
-  );
 
   async function open(item: WorkItem) {
     setOpeningId(item.id);
@@ -110,51 +107,35 @@ function App() {
               },
         ),
       });
-      if (!response.ok)
-        throw new Error(`Could not open conversation (${response.status})`);
+      if (!response.ok) {
+        throw new Error(`Could not open this task (${response.status})`);
+      }
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Could not open this item",
+        reason instanceof Error ? reason.message : "Could not open this task",
       );
     } finally {
       setOpeningId(null);
     }
   }
 
+  const itemCount = payload?.items.length ?? 0;
+
   return (
     <main className="desk-shell">
-      <header className="masthead">
-        <div className="eyebrow">
-          <span className="pulse" /> CHIEF OF STAFF / LIVE QUEUE
-        </div>
-        <div className="headline-row">
-          <div>
-            <h1>
-              What moves
-              <br />
-              next.
-            </h1>
-            <p>
-              Every active Apollo conversation and live Cursor agent, ordered
-              solely by its last update.
-            </p>
-          </div>
-          <button
-            className="refresh"
-            onClick={() => void load()}
-            disabled={loading}
-          >
-            <span className={loading ? "spinner" : "refresh-mark"}>
-              {loading ? "" : "↻"}
-            </span>
-            {loading ? "Refreshing" : "Refresh"}
-          </button>
-        </div>
-        <div className="ranking-rule">
-          <span>RANKING RULE</span>
-          <strong>Last updated first</strong>
-          <span>Score = update timestamp</span>
-        </div>
+      <header className="taskbar">
+        <span className="task-count">{totalLabel(itemCount)}</span>
+        <button
+          className="refresh"
+          onClick={() => void load()}
+          disabled={loading}
+          title="Reload the most recently compiled priority snapshot"
+        >
+          <span className={loading ? "spinner" : "refresh-mark"}>
+            {loading ? "" : "↻"}
+          </span>
+          {loading ? "Refreshing" : "Refresh"}
+        </button>
       </header>
 
       {error && (
@@ -163,54 +144,23 @@ function App() {
         </div>
       )}
 
-      <section className="summary-grid" aria-label="Queue summary">
-        <SummaryCard
-          label="Apollo"
-          count={payload?.sources.apollo.activeCount ?? 0}
-          detail="active conversations"
-        />
-        <SummaryCard
-          label="Cursor"
-          count={payload?.sources.cursor.activeCount ?? 0}
-          detail={cursorDetail(payload?.sources.cursor.status)}
-          muted={payload?.sources.cursor.status !== "connected"}
-        />
-        <SummaryCard
-          label="Now"
-          count={
-            payload?.items.filter((item) => item.status === "working").length ??
-            0
-          }
-          detail="in motion"
-          accent
-        />
-      </section>
-
       {loading && (
         <section className="loading-state">
-          <span className="loader" /> Reading the live queues
+          <span className="loader" /> Reading compiled priorities
         </section>
       )}
 
       {!loading && payload && (
-        <section className="queue" aria-label="Priority queue">
-          <div className="queue-heading">
-            <span>Priority order</span>
-            <span>
-              {payload.items.length} live item
-              {payload.items.length === 1 ? "" : "s"}
-            </span>
-          </div>
+        <section className="queue" aria-label="Live tasks by priority">
           {payload.items.length === 0 ? (
             <div className="empty-state">
               <strong>Nothing is moving.</strong>
-              <span>Apollo and Cursor are both quiet right now.</span>
+              <span>No active Apollo conversations or Cursor agents.</span>
             </div>
           ) : (
-            payload.items.map((item, index) => (
+            payload.items.map((item) => (
               <WorkRow
                 item={item}
-                index={index}
                 busy={openingId === item.id}
                 onOpen={() => void open(item)}
                 key={`${item.source}:${item.id}`}
@@ -219,116 +169,58 @@ function App() {
           )}
         </section>
       )}
-
-      {!loading && payload?.sources.cursor.status === "not-connected" && (
-        <aside className="cursor-note">
-          <span className="note-kicker">
-            Cursor is not connected to this plugin
-          </span>
-          <p>
-            Connect a Cursor API key as <code>the-force / cursor_api_key</code>{" "}
-            to add unfinished Cursor agents to this list.
-          </p>
-        </aside>
-      )}
-
-      {!loading &&
-        cursorItems.length === 0 &&
-        payload?.sources.cursor.status === "connected" && (
-          <aside className="cursor-note quiet">
-            <span className="note-kicker">Cursor is clear</span>
-            <p>No Cursor agent is currently creating or running.</p>
-          </aside>
-        )}
-
-      {!loading &&
-        apolloItems.length === 0 &&
-        payload?.sources.apollo.activeCount === 0 && (
-          <p className="microcopy">
-            No active Apollo conversations were returned.
-          </p>
-        )}
     </main>
-  );
-}
-
-function SummaryCard({
-  label,
-  count,
-  detail,
-  muted,
-  accent,
-}: {
-  label: string;
-  count: number;
-  detail: string;
-  muted?: boolean;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      className={`summary-card${muted ? " muted" : ""}${accent ? " accent" : ""}`}
-    >
-      <span>{label}</span>
-      <strong>{count}</strong>
-      <small>{detail}</small>
-    </div>
   );
 }
 
 function WorkRow({
   item,
-  index,
   busy,
   onOpen,
 }: {
   item: WorkItem;
-  index: number;
   busy: boolean;
   onOpen: () => void;
 }) {
+  const detailId = useId();
+  const score = item.priority.score;
+
   return (
-    <article className={`work-row ${item.status}`}>
-      <div className="ordinal">{String(index + 1).padStart(2, "0")}</div>
-      <div className="work-copy">
-        <div className="source-line">
+    <button
+      className={`work-row ${item.status}`}
+      onClick={onOpen}
+      disabled={busy}
+      aria-label={`Open ${item.title}`}
+      type="button"
+    >
+      <span className="work-copy">
+        <span className="source-line">
           <span className={`source-tag ${item.source}`}>{item.source}</span>
           <span className="state-dot" />
-          <span>{item.status === "working" ? "working" : "open"}</span>
-          <span className="age">updated {relativeTime(item.updatedAt)}</span>
-        </div>
-        <h2>{item.title}</h2>
-      </div>
-      <div className="score-block" title={`Unix timestamp: ${item.score}`}>
-        <span>score</span>
-        <strong>{scoreLabel(item.score)}</strong>
-        <small>
-          {item.score > 0
-            ? new Date(item.score).toLocaleString([], {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })
-            : "timestamp unavailable"}
-        </small>
-      </div>
-      <button
-        className="open-pill"
-        onClick={onOpen}
-        disabled={busy}
-        aria-label={`${actionLabel(item)}: ${item.title}`}
-      >
-        {busy ? "Opening" : actionLabel(item)} <span>↗</span>
-      </button>
-    </article>
+          <span>{statusLabel(item)}</span>
+        </span>
+        <strong>{item.title}</strong>
+      </span>
+      <span className="score-block" aria-describedby={detailId}>
+        <span className="score-number">{busy ? "…" : score}</span>
+        <span className="score-label">priority</span>
+        <span className="score-popover" id={detailId} role="tooltip">
+          <span className="score-popover-heading">Priority score {score}</span>
+          <span className="score-components">
+            {item.priority.components.map((component) => (
+              <span className="score-component" key={component.id}>
+                <span className="score-component-title">
+                  <span>{component.label}</span>
+                  <strong>+{component.score}</strong>
+                </span>
+                <span>{component.detail}</span>
+              </span>
+            ))}
+          </span>
+        </span>
+      </span>
+    </button>
   );
-}
-
-function cursorDetail(status: CursorStatus | undefined): string {
-  if (status === "not-connected") return "not connected";
-  if (status === "unavailable") return "temporarily unavailable";
-  return "unfinished agents";
 }
 
 render(<App />, document.getElementById("app")!);
