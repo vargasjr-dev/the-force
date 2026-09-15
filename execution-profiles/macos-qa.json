@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "name": "macos-qa",
+  "description": "Gated macOS lane for validation that cannot be proven on Linux.",
+  "taskModel": "per-task",
+  "runtime": {
+    "os": "macos",
+    "architecture": "arm64",
+    "size": "standard"
+  },
+  "capabilities": [
+    "apple-platform",
+    "git",
+    "github",
+    "network-egress"
+  ],
+  "cachePolicy": {
+    "gitObjects": true,
+    "dependencies": true,
+    "buildArtifacts": true
+  },
+  "limits": {
+    "maxConcurrentTasks": 1,
+    "idleTtlMinutes": 20,
+    "maxLifetimeMinutes": 240
+  },
+  "isolation": {
+    "freshHome": false,
+    "freshTemp": false,
+    "mountWorkspace": false,
+    "mountPersonalData": false
+  },
+  "requiresReason": true,
+  "allowedReasons": [
+    "apple-platform",
+    "arm-macos-regression",
+    "sandbox-parity"
+  ]
+}
