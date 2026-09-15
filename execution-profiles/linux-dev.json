@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "name": "linux-dev",
+  "description": "Disposable Linux worker for one repository implementation or validation task.",
+  "taskModel": "per-task",
+  "runtime": {
+    "os": "linux",
+    "architecture": "arm64",
+    "size": "standard"
+  },
+  "capabilities": [
+    "docker",
+    "git",
+    "github",
+    "network-egress"
+  ],
+  "cachePolicy": {
+    "gitObjects": true,
+    "dependencies": true,
+    "buildArtifacts": true
+  },
+  "limits": {
+    "maxConcurrentTasks": 3,
+    "idleTtlMinutes": 20,
+    "maxLifetimeMinutes": 240
+  },
+  "isolation": {
+    "freshHome": true,
+    "freshTemp": true,
+    "mountWorkspace": false,
+    "mountPersonalData": false
+  },
+  "requiresReason": false
+}
