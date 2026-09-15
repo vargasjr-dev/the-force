@@ -12,6 +12,7 @@
     "@vellumai/plugin-api": "^0.8.0"
   },
   "scripts": {
-    "test:disposable-compute": "bun test src/disposable-compute"
+    "test:disposable-compute": "bun test src/disposable-compute",
+    "compute": "bun run scripts/disposable-compute.ts"
   }
 }

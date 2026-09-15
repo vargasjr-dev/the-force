@@ -59,3 +59,19 @@ start -> status -> exec -> finish
 - `finish` marks the task completed or abandoned and asks the broker to destroy the environment.
 
 A hard broker-side TTL remains mandatory even if Force loses state or stops calling the API.
+
+
+## Local command surface
+
+From the Force plugin root:
+
+```bash
+bun run compute profiles
+bun run compute plan --profile linux-dev --repo vellum-ai/vellum-assistant --base origin/main --branch apollo/example --idempotency-key conversation:task
+bun run compute start --profile linux-dev --repo vellum-ai/vellum-assistant --base origin/main --branch apollo/example --idempotency-key conversation:task
+bun run compute status task-000001
+bun run compute exec task-000001 --cwd assistant --timeout 120 -- bun test
+bun run compute finish task-000001 --outcome completed
+```
+
+`profiles` and `plan` are local and non-mutating. Broker commands require `FORCE_COMPUTE_BROKER_URL`. The optional `FORCE_COMPUTE_BROKER_TOKEN` is read from the process environment and sent as a bearer token. Resolve that value at execution time; never paste it into chat or place it in command arguments.
