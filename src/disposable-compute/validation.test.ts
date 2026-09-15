@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { BROKER_API_VERSION } from "./contract.ts";
 import { getExecutionProfile, listExecutionProfiles } from "./profiles.ts";
 import {
+  parseExecutionProfile,
   parseExecTaskRequest,
   parseStartTaskRequest,
   validateProfileReason,
@@ -22,6 +23,14 @@ describe("execution profiles", () => {
     expect(() => validateProfileReason(profile)).toThrow("requires a reason");
     expect(() => validateProfileReason(profile, "routine-tests")).toThrow("does not allow reason");
     expect(() => validateProfileReason(profile, "apple-platform")).not.toThrow();
+  });
+
+  test("rejects provider topology hidden inside logical policy", async () => {
+    const profile = await getExecutionProfile("linux-dev");
+    expect(() => parseExecutionProfile({
+      ...profile,
+      runtime: { ...profile.runtime, instanceType: "m8g.48xlarge" },
+    })).toThrow("runtime contains unsupported fields: instanceType");
   });
 });
 
@@ -56,6 +65,21 @@ describe("broker requests", () => {
       timeoutSeconds: 120,
     });
     expect(request.argv).toEqual(["bun", "test"]);
-    expect(request).not.toHaveProperty("env");
+    expect(() => parseExecTaskRequest({
+      ...request,
+      env: { TOKEN: "nope" },
+    })).toThrow("unsupported fields: env");
+  });
+
+  test("rejects caller-selected infrastructure fields", () => {
+    expect(() => parseStartTaskRequest({
+      apiVersion: BROKER_API_VERSION,
+      profile: "linux-dev",
+      repository: "vellum-ai/vellum-assistant",
+      baseRef: "origin/main",
+      branch: "apollo/example",
+      idempotencyKey: "conversation:task",
+      instanceType: "m8g.48xlarge",
+    })).toThrow("unsupported fields: instanceType");
   });
 });
