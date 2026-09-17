@@ -38,6 +38,61 @@ describe("HTTP disposable compute client", () => {
     expect(await request?.json()).toEqual(task.request);
   });
 
+  test("maps status, exec, and finish to the broker protocol", async () => {
+    const requests: Request[] = [];
+    const broker = new HttpDisposableComputeBroker({
+      baseUrl: "https://broker.example.test",
+      fetch: async (input, init) => {
+        const request = new Request(input, init);
+        requests.push(request);
+        if (request.url.endsWith("/exec")) {
+          return Response.json({
+            apiVersion: BROKER_API_VERSION,
+            taskId: task.id,
+            commandId: "command-000001",
+            exitCode: 0,
+            stdout: "ok\n",
+            stderr: "",
+            startedAt: "2026-09-15T12:01:00.000Z",
+            finishedAt: "2026-09-15T12:01:01.000Z",
+          });
+        }
+        return Response.json({
+          ...task,
+          status: request.url.endsWith("/finish") ? "finished" : task.status,
+        });
+      },
+    });
+
+    await broker.status(task.id);
+    await broker.exec(task.id, {
+      apiVersion: BROKER_API_VERSION,
+      argv: ["bun", "test"],
+      cwd: "assistant",
+      timeoutSeconds: 120,
+    });
+    await broker.finish(task.id, {
+      apiVersion: BROKER_API_VERSION,
+      outcome: "completed",
+    });
+
+    expect(requests.map((request) => [request.method, request.url])).toEqual([
+      ["GET", `https://broker.example.test/v1/tasks/${task.id}`],
+      ["POST", `https://broker.example.test/v1/tasks/${task.id}/exec`],
+      ["POST", `https://broker.example.test/v1/tasks/${task.id}/finish`],
+    ]);
+    expect(await requests[1]?.json()).toEqual({
+      apiVersion: BROKER_API_VERSION,
+      argv: ["bun", "test"],
+      cwd: "assistant",
+      timeoutSeconds: 120,
+    });
+    expect(await requests[2]?.json()).toEqual({
+      apiVersion: BROKER_API_VERSION,
+      outcome: "completed",
+    });
+  });
+
   test("does not allow cleartext remote broker URLs", () => {
     expect(() => new HttpDisposableComputeBroker({
       baseUrl: "http://broker.example.test",
