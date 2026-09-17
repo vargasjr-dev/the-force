@@ -1,7 +1,7 @@
 {
   "name": "the-force",
   "version": "0.1.0",
-  "description": "Skills and capabilities to perfect the ways of the ajedic arts, including software engineering workflows, PR lifecycle, and workspace tooling.",
+  "description": "Skills and capabilities to perfect the ways of the ajedic arts, including software engineering workflows, PR lifecycle, workspace tooling, and disposable compute profiles.",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -10,5 +10,9 @@
   },
   "peerDependencies": {
     "@vellumai/plugin-api": "^0.10.12"
+  },
+  "scripts": {
+    "test:disposable-compute": "bun test src/disposable-compute",
+    "compute": "bun run scripts/disposable-compute.ts"
   }
 }
