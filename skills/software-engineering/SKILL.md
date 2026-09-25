@@ -43,6 +43,6 @@ If `AGENTS.md` has a section on the area, **read it before writing code**. Don't
 | `pr-lifecycle.md` | Scope discipline, post-open registration, iteration, post-merge. Trust CI. Documents `register-pr.ts` + `worktree-cleanup.ts`. |
 | `protocols.md` | Spec compliance for SSE/HTTP/WS, cross-origin credentials, transport tagging. |
 | `setup.md` | First-time setup — create `assets/profile.json` from the example template. |
-| `unslopping-rules.md` | Behavior-preserving removal of pass-through wrappers, alias locals, identity transforms, leftover names, narrating comments, and repeated fixed arguments. |
+| `unslopping-rules.md` | Behavior-preserving removal of pass-through wrappers, alias locals, identity transforms, leftover names, narrating comments, repeated fixed arguments, and reusable export laundering. |
 | `unit-testing.md` | Mock I/O aggressively, never mock our own code. Determinism, structure, edge cases. |
 | `workstreams.md` | Plan-doc conventions, Linear integration, the workstream record template. |

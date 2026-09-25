@@ -1,6 +1,6 @@
 ---
 name: vellum-unslopping
-description: Remove code slop (pass-through wrappers, alias locals, identity transforms, leftover names, narrating comments, repeated arguments that every caller computes from the same import) without changing behavior. Use when running an Unslopping pass, cleaning agent-generated code, or reviewing a diff for needless indirection.
+description: Remove code slop (pass-through wrappers, alias locals, identity transforms, leftover names, narrating comments, repeated fixed arguments, and reusable export laundering) without changing behavior. Use when running an Unslopping pass, cleaning agent-generated code, or reviewing a diff for needless indirection.
 ---
 
 # Unslopping
@@ -360,6 +360,71 @@ Keep the parameter when any of these is true:
 - Tests (or a public API) inject the argument as a seam.
 - The callee must not import the producer (package boundary: assistant vs gateway vs skills vs meta).
 - There is only one caller. Wait for the second site before moving the import.
+
+### 12. Reusable export laundering
+
+A helper's return object should contain values the helper computes or owns. Do not import a stable reusable export only to copy it into the return shape, forcing consumers to call the helper and destructure an alias for that export. Consumers should import the canonical export directly, and the helper should return only its actual output.
+
+Slop:
+
+```ts
+// constants.ts
+export const FOO = "foo";
+
+// helper.ts
+import { FOO } from "./constants.js";
+
+export function helper() {
+  const result = computeResult();
+  return { foo: FOO, result };
+}
+
+// a.ts
+import { helper } from "./helper.js";
+
+const { foo, result } = helper();
+useResult(result, foo);
+
+// b.ts
+import { helper } from "./helper.js";
+
+const { foo, result } = helper();
+useResult(result, foo);
+```
+
+Unslopped:
+
+```ts
+// helper.ts
+export function helper() {
+  const result = computeResult();
+  return { result };
+}
+
+// a.ts
+import { FOO } from "./constants.js";
+import { helper } from "./helper.js";
+
+const { result } = helper();
+useResult(result, FOO);
+
+// b.ts
+import { FOO } from "./constants.js";
+import { helper } from "./helper.js";
+
+const { result } = helper();
+useResult(result, FOO);
+```
+
+This remains slop when a consumer also needs other fields from `helper()`. Calling the helper for real output does not make it the owner of an unrelated reusable export. Remove the field from the helper's return type as well as from its implementation and consumers.
+
+Keep the field when any of these is true:
+
+- The value is computed, selected, transformed, or validated for that invocation.
+- The return shape is a public, package, wire, or persisted contract that must stay stable.
+- The field is an intentional test seam or dependency supplied by the helper's caller.
+- The helper must capture a snapshot rather than expose a live or mutable binding.
+- Importing the canonical export would cross a package boundary the consumer must not cross.
 
 ---
 
