@@ -1,6 +1,6 @@
 ---
 name: vellum-unslopping
-description: Remove code slop (pass-through wrappers, alias locals, identity transforms, leftover names, narrating comments, repeated fixed arguments, and reusable export laundering) without changing behavior. Use when running an Unslopping pass, cleaning agent-generated code, or reviewing a diff for needless indirection.
+description: Remove code slop (pass-through wrappers, unjustified alias locals, identity transforms, leftover names, narrating comments, repeated fixed arguments, reusable export laundering, and asserted unknown-data shapes) without changing behavior. Use when running an Unslopping pass, cleaning agent-generated code, replacing handwritten external-data parsing, or reviewing a diff for needless indirection.
 ---
 
 # Unslopping
@@ -80,6 +80,8 @@ callMethod(a);
 Same for `const socketPath = result.socketPath; connect(socketPath)` and for `const { socketPath } = result` when the alias is used once and the original name is already clear.
 
 Keep it when the alias is a domain name that the original expression does not carry (`const guardianToken = process.env["TOKEN"]`), or when it is assigned so a later mutation or narrowing can happen.
+
+A local is also justified when it avoids at least one repeated operation, or when inlining it would produce equal or greater code or line overhead. Judge net complexity, not variable count. Do not replace a named intermediate with a duplicated call or a longer expression just to remove one declaration.
 
 ### 3. Return-only locals
 
@@ -426,6 +428,42 @@ Keep the field when any of these is true:
 - The helper must capture a snapshot rather than expose a live or mutable binding.
 - Importing the canonical export would cross a package boundary the consumer must not cross.
 
+### 13. Handwritten unknown-data parsing
+
+Structured values from unknown boundaries should be parsed as complete shapes with Zod before field access. This includes parsed JSON, HTTP response bodies, persisted blobs, and unknown tool or plugin inputs. Handwritten object, null, and array checks followed by `as Record<string, unknown>` or narrower property assertions are type-narrowing theater: the assertion tells the compiler to trust the value at the boundary where it is least trustworthy.
+
+Slop:
+
+```ts
+const body: unknown = await response.json();
+if (typeof body !== "object" || body === null || Array.isArray(body)) {
+  return null;
+}
+const commit = (body as Record<string, unknown>).commit;
+if (typeof commit !== "object" || commit === null) {
+  return null;
+}
+const sha = (commit as Record<string, unknown>).sha;
+return typeof sha === "string" ? sha : null;
+```
+
+Unslopped:
+
+```ts
+const CommitResponseSchema = z.object({
+  commit: z.object({
+    sha: z.string(),
+  }),
+});
+
+const parsed = CommitResponseSchema.safeParse(await response.json());
+return parsed.success ? parsed.data.commit.sha : null;
+```
+
+Define the complete structure the caller consumes, call `safeParse`, check `success`, and use `parsed.data`. Keep optional sibling metadata independently lenient when one malformed field must not invalidate another valid field. Do not replace one assertion with a different `as` assertion.
+
+Keep deterministic handwritten checks for primitive values or domain rules after parsing, and preserve bespoke user-facing validation errors when a generic schema error would change the interface.
+
 ---
 
 ## Out of scope
@@ -437,5 +475,6 @@ These look adjacent and are not Unslopping:
 - Removing braces, turning `if` into a ternary, or shrinking a file for line count.
 - Deleting migrations, compat shims that shipped clients still hit, or generated OpenAPI clients.
 - Moving code across `assistant/` / `gateway/` / `skills/` / `meta/` to make a wrapper go away.
+- Flagging the substitutions made in `assistant/src/tools/executor.ts` by vellum-assistant PR #43376 as slop, or applying them elsewhere by analogy. Those edits were deliberate, not an Unslopping pattern.
 
 If a candidate fails the "same behavior, fewer hops" test, leave it and note it in the PR instead of forcing it.
