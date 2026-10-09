@@ -432,6 +432,8 @@ Keep the field when any of these is true:
 
 Structured values from unknown boundaries should be parsed as complete shapes with Zod before field access. This includes parsed JSON, HTTP response bodies, persisted blobs, and unknown tool or plugin inputs. Handwritten object, null, and array checks followed by `as Record<string, unknown>` or narrower property assertions are type-narrowing theater: the assertion tells the compiler to trust the value at the boundary where it is least trustworthy.
 
+The cast-free variant is the same slop. A typeof-ladder that validates fields one by one and rebuilds the object by hand hand-writes what a schema states once, keeps two sources of truth (the ladder's checks and the declared interface it quietly tries to match), and grows line-for-line with the shape. "No `as` in it" does not make it a parser. Reach for this rule the moment you are hand-narrowing parsed JSON, with or without an assertion.
+
 Slop:
 
 ```ts
@@ -460,9 +462,39 @@ const parsed = CommitResponseSchema.safeParse(await response.json());
 return parsed.success ? parsed.data.commit.sha : null;
 ```
 
-Define the complete structure the caller consumes, call `safeParse`, check `success`, and use `parsed.data`. Keep optional sibling metadata independently lenient when one malformed field must not invalidate another valid field. Do not replace one assertion with a different `as` assertion.
+The same slop without the casts:
 
-Keep deterministic handwritten checks for primitive values or domain rules after parsing, and preserve bespoke user-facing validation errors when a generic schema error would change the interface.
+```ts
+function userFromJson(json: unknown): UserResponse | null {
+  if (!isRecord(json)) return null;
+  if (typeof json.id !== "string" || typeof json.name !== "string") {
+    return null;
+  }
+  const user: UserResponse = { id: json.id, name: json.name };
+  if (typeof json.email === "string") user.email = json.email;
+  return user;
+}
+```
+
+Unslopped by the same move:
+
+```ts
+const UserResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().optional(),
+});
+export type UserResponse = z.infer<typeof UserResponseSchema>;
+
+function userFromJson(json: unknown) {
+  const parsed = UserResponseSchema.safeParse(json);
+  return parsed.success ? parsed.data : null;
+}
+```
+
+Define the complete structure the caller consumes, call `safeParse`, check `success`, and use `parsed.data`. Derive the consuming type with `z.infer` so the schema is the single source of truth — never maintain a schema that mimics a parallel interface. Use `z.enum` / `z.discriminatedUnion` for closed sets instead of re-checking membership by hand, and `z.looseObject` / passthrough when unknown sibling fields must survive. Keep optional sibling metadata independently lenient when one malformed field must not invalidate another valid field. Do not replace one assertion with a different `as` assertion, and do not keep a hand-built reconstruction because it happens to be cast-free.
+
+Keep deterministic handwritten checks after parsing for domain rules only (this courier's badge is expired), never for shape (this field is a string). Preserve bespoke user-facing validation errors when a generic schema error would change the interface.
 
 ---
 
