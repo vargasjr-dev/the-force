@@ -1,5 +1,5 @@
 ---
-name: vellum-unslopping
+name: unslopping
 description: Remove code slop (pass-through wrappers, unjustified alias locals, identity transforms, leftover names, narrating comments, repeated fixed arguments, reusable export laundering, and asserted unknown-data shapes) without changing behavior. Use when running an Unslopping pass, cleaning agent-generated code, replacing handwritten external-data parsing, or reviewing a diff for needless indirection.
 ---
 
@@ -475,6 +475,5 @@ These look adjacent and are not Unslopping:
 - Removing braces, turning `if` into a ternary, or shrinking a file for line count.
 - Deleting migrations, compat shims that shipped clients still hit, or generated OpenAPI clients.
 - Moving code across `assistant/` / `gateway/` / `skills/` / `meta/` to make a wrapper go away.
-- Flagging the substitutions made in `assistant/src/tools/executor.ts` by vellum-assistant PR #43376 as slop, or applying them elsewhere by analogy. Those edits were deliberate, not an Unslopping pattern.
 
 If a candidate fails the "same behavior, fewer hops" test, leave it and note it in the PR instead of forcing it.
