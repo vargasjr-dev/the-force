@@ -10,7 +10,7 @@ Why: parentheticals smuggle in second thoughts. If the aside matters, it deserve
 
 Rewrites, in order of preference:
 
-1. **Own sentence** — `Install it (macOS: brew install nginx; Debian/Ubuntu: apt).` → `Install it with the package manager for your platform.` (or split the per-platform detail into a following line when the platform specifics are the point).
+1. **Own sentence** — `Install it (macOS: brew install nginx; Debian/Ubuntu: apt).` → `Install it with the package manager for your platform.` When the platform specifics are the point, split them into a following line instead of an aside.
 2. **Em dash or colon** — `Started the edge (serves webhooks only).` → `Started the edge, serving webhooks only.`
 3. **Just delete** — `(pass --provider to choose another)` → gone. The flag exists; `--help` documents it.
 
@@ -18,7 +18,7 @@ Allowed exceptions, sparingly:
 
 - Formal descriptors directly attached to a term: `Cadet Cloud (hosted)` style suffixes — only when the short form alone would be ambiguous. Prefer a space or dash: `Cadet Cloud — hosted`.
 - Inlined command syntax that must be copied as a unit, e.g. `--domain <domain>` in usage strings — the angle brackets already signal this; no parens needed.
-- Never for: platform-specific install commands (link the docs page or name the platform in its own sentence), apologies, or "BTW" facts.
+- Never for: platform-specific install commands — link the docs page or name the platform in its own sentence — apologies, or "BTW" facts.
 
 ## Checking a change
 
@@ -27,4 +27,4 @@ Allowed exceptions, sparingly:
 grep -rnE '"[^"]*\(|`[^`]*\(' cli/src --include='*.ts' | grep -vE '__tests__|\.test\.ts' | grep -E 'console\.|Error\(|error\(|warn\(' | less
 ```
 
-Some matches are code, not copy (regex literals, type annotations on the same line, `new Error(`). Triage by eye; only the rendered text a user sees counts.
+Some matches are code, not copy — regex literals, type annotations on the same line, `new Error(`. Triage by eye; only the rendered text a user sees counts.
