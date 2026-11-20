@@ -14,7 +14,7 @@ Plan-doc conventions, Linear integration, and the workstream record template. A 
 
 5. **Cut redundant sections.** If a section doesn't add information the reader doesn't already have, delete it. Architecture diagrams included — most of the time they don't earn their space.
 
-6. **Decisions over descriptions.** Tell the reader *what you chose and why*. Vargas already has codebase context; don't re-explain it.
+6. **Decisions over descriptions.** Tell the reader *what you chose and why*. the Council already has codebase context; don't re-explain it.
 
 7. **Every workstream gets a Linear Project.** Under Team Atlas (`ATL`) by default. The Linear project is NOT the source of truth — the internal plan markdown in the workstream record is. Linear gives teammates visibility.
 

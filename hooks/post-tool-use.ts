@@ -13,7 +13,7 @@
 
 import { execSync } from "node:child_process";
 
-import type { PluginHookFn, PostToolUseContext } from "@vellumai/plugin-api";
+import type { PluginHookFn, PostToolUseContext } from "@mycadet/plugin-api";
 
 import { getPrLink, setPrLink, setPushRepo } from "../src/pr-link-store.js";
 

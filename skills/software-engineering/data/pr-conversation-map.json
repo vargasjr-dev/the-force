@@ -848,7 +848,7 @@
     "branch": "apollo/assistant-api-scaffold",
     "conversationId": "9fb95843-af22-46eb-a783-1b36a0fa56d1",
     "conversationTitle": "Zod Event Parsing",
-    "prTitle": "feat(api): introduce @vellumai/assistant-api with sync_changed schema (phase 0)",
+    "prTitle": "feat(api): introduce @mycadet/assistant-api with sync_changed schema (phase 0)",
     "registeredAt": 1779727567504,
     "updatedAt": 1779727567504
   },
@@ -902,7 +902,7 @@
     "owner": "vellum-ai",
     "branch": "apollo/assistant-api-web-tracer",
     "conversationId": "9fb95843-af22-46eb-a783-1b36a0fa56d1",
-    "prTitle": "feat(web): wire @vellumai/assistant-api into apps/web; migrate relationship_state_updated parser",
+    "prTitle": "feat(web): wire @mycadet/assistant-api into apps/web; migrate relationship_state_updated parser",
     "registeredAt": 1779739472626,
     "updatedAt": 1779739472626
   },
@@ -1257,7 +1257,7 @@
     "branch": "apollo/synthetic-call-api-followups",
     "conversationId": "929cd44f-0d73-40ce-9988-1929d9135b43",
     "conversationTitle": "Compaction Investigation",
-    "prTitle": "refactor(api): move LLMRequestLogEntry + synthetic call-site constant to @vellumai/assistant-api",
+    "prTitle": "refactor(api): move LLMRequestLogEntry + synthetic call-site constant to @mycadet/assistant-api",
     "registeredAt": 1779913455662,
     "updatedAt": 1779913455662
   },
@@ -1323,7 +1323,7 @@
     "branch": "apollo/api-zod-response-schemas",
     "conversationId": "929cd44f-0d73-40ce-9988-1929d9135b43",
     "conversationTitle": "Compaction Investigation",
-    "prTitle": "refactor(api): zodify response types + move LlmContextResponse + Memory* to @vellumai/assistant-api",
+    "prTitle": "refactor(api): zodify response types + move LlmContextResponse + Memory* to @mycadet/assistant-api",
     "registeredAt": 1779919232251,
     "updatedAt": 1779919232251
   },

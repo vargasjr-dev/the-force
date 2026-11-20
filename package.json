@@ -9,7 +9,7 @@
     "node": ">=20.12.0"
   },
   "peerDependencies": {
-    "@vellumai/plugin-api": "^0.10.12"
+    "@mycadet/plugin-api": "^0.10.12"
   },
   "scripts": {
     "test:disposable-compute": "bun test src/disposable-compute",

@@ -5,7 +5,7 @@
  * used by the default plugins (empty-response, surface-completion-nudge).
  */
 
-import type { PluginHookFn, StopContext } from "@vellumai/plugin-api";
+import type { PluginHookFn, StopContext } from "@mycadet/plugin-api";
 
 import { clearPrLink } from "../src/pr-link-store.js";
 
