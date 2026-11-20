@@ -8,7 +8,7 @@ metadata:
 
 ## Meta rule
 
-Every time Vargas leaves PR feedback, ask: **"What is the broader lesson here to prevent feedback like this in the future?"** Then update the relevant file in `references/` (or add a new one if no existing topic fits). Alignment compounds.
+Every time the Council leaves PR feedback, ask: **"What is the broader lesson here to prevent feedback like this in the future?"** Then update the relevant file in `references/` (or add a new one if no existing topic fits). Alignment compounds.
 
 ## Grep `AGENTS.md` before any change
 
@@ -34,6 +34,7 @@ If `AGENTS.md` has a section on the area, **read it before writing code**. Don't
 | `architecture.md` | Target architecture, security repros, Codex false-positives, design smells, safety nets. |
 | `cli-design.md` | CRUD-shaped verbs (`get`/`refresh`, not `status`/`reconnect`). `get` is always live. No flags that flip read/write semantics. Subject at the verb level. |
 | `comments.md` | Code comments vs. PR comments. No tombstones, no history narration. |
+| `copy.md` | User-facing text. Almost never parentheses — rewrite as own sentence, em dash, or delete. |
 | `dependencies.md` | Anti-DI under all circumstances. Direct imports, file-based auto-registration. |
 | `frontend-architecture.md` | Limit bespoke client state. Audit problems are design problems. Server-shaped data over client-side latches. |
 | `git-workflow.md` | Worktrees + bot git identity. Documents `worktree-create.ts`. |

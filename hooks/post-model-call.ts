@@ -19,7 +19,7 @@
  * content as the persisted and streamed message.
  */
 
-import type { PluginHookFn, PostModelCallContext } from "@vellumai/plugin-api";
+import type { PluginHookFn, PostModelCallContext } from "@mycadet/plugin-api";
 
 import { getPrLink, getPushRepo } from "../src/pr-link-store.js";
 
