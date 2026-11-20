@@ -41,6 +41,7 @@ If `AGENTS.md` has a section on the area, **read it before writing code**. Don't
 | `identity-data.md` | Sensitive identity flows from trusted sources, never LLM context. |
 | `logging.md` | No PII. No auth objects. No reserved LogRecord names. |
 | `naming.md` | Name things by what they are, not the subsystem that introduced them. |
+| `plugin-content.md` | The Force as a shared starting point: depersonalized, general, Star Wars themed. System prompts keep the real name until templating lands. |
 | `pr-lifecycle.md` | Scope discipline, post-open registration, iteration, post-merge. Trust CI. Documents `register-pr.ts` + `worktree-cleanup.ts`. |
 | `protocols.md` | Spec compliance for SSE/HTTP/WS, cross-origin credentials, transport tagging. |
 | `setup.md` | First-time setup — create `assets/profile.json` from the example template. |

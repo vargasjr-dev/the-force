@@ -1,6 +1,6 @@
 {
   "name": "the-force",
-  "version": "0.1.0",
+  "version": "0.13.0",
   "description": "Skills and capabilities to perfect the ways of the ajedic arts, including software engineering workflows, PR lifecycle, workspace tooling, and disposable compute profiles.",
   "private": true,
   "license": "MIT",
