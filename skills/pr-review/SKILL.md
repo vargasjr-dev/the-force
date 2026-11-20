@@ -29,6 +29,7 @@ Explicitly NOT the review's job — CI's job:
 
 - **Lenient.** The three requirements above are the requirements, and the bar to hit each is LOW. Don't invent extra requirements; don't gold-plate.
 - Bigger PRs get more scrutiny — no line-count rule. Repeat contributors earn leniency over time.
+- **Never claim a failure mode is already covered.** If you are about to say CI or the release flow would catch something, name the exact check that fails and trace the failure mode to it — a build succeeding is not runtime verification, and an integration failure that only manifests on a live system is detected by nothing unless a smoke path exists. If no detector exists, say so and own the followup to build one.
 - **PRs are support tickets with extra detail, not displays of labor.** If it doesn't break something, it can merge.
 - Anything optional or followup-shaped is NEVER a review comment: the reviewer owns the followup — open the issue, do the work. Followup-style feedback only ever flows from the Council down to the reviewer, because in both cases the reviewer is the one who performs it.
 
