@@ -22,7 +22,7 @@ Explicitly NOT the review's job — CI's job:
 ## The review sequence
 
 1. **Description.** Does it capture the original user story? Missing or unclear → Request Changes.
-2. **Tests.** Were new tests added — or old ones updated — that capture the user story, unit tests that mock nothing except I/O boundaries and globals? No → Request Changes.
+2. **Tests.** Were new tests added — or old ones updated — that capture the user story in runtime logic, unit tests that mock nothing except I/O boundaries and globals? No → Request Changes. A test that only asserts static file contents — string-grepping a Dockerfile or a source file — is static code analysis, not a unit test; it doesn't count.
 3. **Implementation.** Does it align with the long-term vision? Any cross-module or cloud implications? This is where other repos in context earn their keep.
 
 ## The merge bar
