@@ -21,10 +21,12 @@ An inbound report is an Activity — intel from someone running the craft in con
 
 ## The response
 
-- **Open with `Thanks for writing in.`** Thank the customer once.
-- **Give the diagnosis in roughly 32 words or fewer.** The customer wants an answer, not the mechanism; they ask when they want more.
+- **Open with `Thanks for writing in!`** Warmth survives compression — the exclamation is the hospitality, and concise is never cold.
+- **Calibrate confidence to the evidence.** A diagnosis read statically ships as "looks like" — a hunch sold as a verdict risks a public wrong.
+- **Give the diagnosis in roughly 32 words or fewer.** The customer wants an answer, not the mechanism; they ask when they want more. Speak in the customer's observables and their tense — "your assistant is still running," past tense, their lived experience; never an internal verdict narrated in the codebase's present.
 - **Ask for nothing.** Static analysis or a QA reproduction settles the question, and every question back to the customer costs a support cycle. Ask only when both avenues fail — or when the Activity is too vague to investigate. A detailed report never earns an interrogation.
 - **Mention the roadmap only when it explains why the report is not being fixed outright.** A legitimate defect gets fixed no matter what the roadmap holds.
+- **Close on the commitment, set apart.** `We're on it!` stands alone as its own line — the promise is the last thing read, never a tail on the diagnosis.
 - **Conciseness above all** — go long only when asked.
 
 ## Cases
