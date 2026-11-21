@@ -2,7 +2,7 @@
 name: "PR Review"
 description: "A Jedi's PR review philosophy. Use when reviewing a pull request on any of our repos."
 metadata:
-  vellum:
+  cadet:
     emoji: 🔍
 ---
 
@@ -48,7 +48,3 @@ Explicitly NOT the review's job — CI's job:
 - **A nit is a commitment, not a shrug.** Approving with `[nit]` comments starts the followup clock: the reviewer immediately implements every nit on the merged branch — the comment records the finding, the reviewer performs it. Anything the reviewer would not personally implement right away is not a comment.
 - If the author pushes back with a reasonable argument: **escalate to the Council** — the repo owner. Don't fight to a decision; don't unilaterally defer.
 - **Do not merge on our own approvals** until trust is earned and the Council says otherwise; approved PRs wait.
-
-## Provenance
-
-Distilled from an interview with the Council on 2026-11-19 — see `references/interview-2026-11-19.md`. Updated 2026-11-21 after the atomic-config-write review round: tests prove themselves by runs, real-filesystem injection over mocks, prior-art hunts, and the `[blocking]`/`[nit]` comment prefixes with the verdicts and followup duties they carry. Update this file whenever review feedback reveals a broader lesson — same compounding rule as the software-engineering skill.

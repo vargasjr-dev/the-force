@@ -2,7 +2,7 @@
 name: "Software Engineering"
 description: "Standards and scripts for writing code. Use when creating or iterating on pull requests."
 metadata:
-  vellum:
+  cadet:
     emoji: 🛠️
 ---
 
@@ -15,7 +15,7 @@ Every time the Council leaves PR feedback, ask: **"What is the broader lesson he
 When working in an area, search the relevant `AGENTS.md` for keywords related to the change. Targeted grep, not `cat` — the file is too big to read top-to-bottom each time.
 
 ```bash
-grep -niE 'qdrant|memory|graph' /workspace/repos/vellum-assistant/AGENTS.md
+grep -niE 'qdrant|memory|graph' /workspace/repos/mycadet-temp/AGENTS.md
 ```
 
 If `AGENTS.md` has a section on the area, **read it before writing code**. Don't discover the convention through a failed CI run. Repo-specific conventions live in each repo's `AGENTS.md` — the references in this skill are *our* conventions across repos.
