@@ -6,7 +6,7 @@ description: >-
   begin, not while researching or writing a design.
 metadata:
   emoji: "🛰️"
-  vellum:
+  cadet:
     display-name: "Disposable Compute"
     activation-hints:
       - "A repository task is ready for implementation or tests"
@@ -67,8 +67,8 @@ From the Force plugin root:
 
 ```bash
 bun run compute profiles
-bun run compute plan --profile linux-dev --repo vellum-ai/vellum-assistant --base origin/main --branch apollo/example --idempotency-key conversation:task
-bun run compute start --profile linux-dev --repo vellum-ai/vellum-assistant --base origin/main --branch apollo/example --idempotency-key conversation:task
+bun run compute plan --profile linux-dev --repo vargasjr-dev/mycadet-temp --base origin/main --branch apollo/example --idempotency-key conversation:task
+bun run compute start --profile linux-dev --repo vargasjr-dev/mycadet-temp --base origin/main --branch apollo/example --idempotency-key conversation:task
 bun run compute status task-000001
 bun run compute exec task-000001 --cwd assistant --timeout 120 -- bun test
 bun run compute finish task-000001 --outcome completed

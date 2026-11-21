@@ -9,7 +9,7 @@ Worktrees + bot git identity. Every commit goes through this path.
 2. **Use `worktree-create.ts` to start a branch.** It enforces every part of the convention:
    ```bash
    bun run skills/software-engineering/scripts/worktree-create.ts \
-     --repo vellum-assistant \
+     --repo mycadet-temp \
      --branch atl-444-some-fix
    ```
    - Branch is prefixed `{botSlug}/` (added if missing; slug comes from `install-meta.json`)
@@ -29,7 +29,7 @@ Worktrees + bot git identity. Every commit goes through this path.
    If either is wrong, run `bun run /workspace/bin/hq.ts auth` (it syncs identity every run, no need to wait for token expiry) and `git commit --amend --reset-author --no-edit` before pushing.
 
 5. **Never commit with a wrong identity and "fix it later."** Rewriting authors on already-pushed commits is messy. Wrong identities that have leaked before and must not reappear:
-   - `Vellum Assistant <assistant@vellum.ai>` (container default — what `git init` produces here)
+   - `Cadet <assistant@mycadet.ai>` (container default — what git identity stamping produces here)
    - Any bare email not tied to the GitHub App's user ID (GitHub renders it as a generic user, not the App)
 
 6. **Commit eagerly during multi-file work.** Worktrees can be wiped by concurrent assistant sessions. After each meaningful step (file done, tests pass, lint clean), commit. Push as soon as the first commit lands — a remote ref protects against local-worktree destruction.

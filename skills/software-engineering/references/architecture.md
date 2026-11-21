@@ -22,7 +22,7 @@ Architectural awareness: target architecture, security repros, design smells, sa
 
 2. **Unreleased features have no backward compatibility.** No legacy fallback routes. No version-skew detection. No migration shims. Just ship the clean version. Compat is for things real users depend on.
 
-3. **Security fixes need a one-line repro.** Before opening a PR for a security fix, write a one-line repro that succeeds against unpatched code and fails against patched code. Don't trust security semantics from naming alone — `~/.vellum/protected/` is still bash-readable. If you can't write the repro, the fix isn't a fix. Repro goes in the PR description.
+3. **Security fixes need a one-line repro.** Before opening a PR for a security fix, write a one-line repro that succeeds against unpatched code and fails against patched code. Don't trust security semantics from naming alone — `~/.cadet/protected/` is still bash-readable. If you can't write the repro, the fix isn't a fix. Repro goes in the PR description.
 
 4. **Update `AGENTS.md` when Codex flags a false positive.** If a vulnerability scanner re-flags something that isn't real, update the relevant `AGENTS.md` so the scanner can read why it's not an issue. The fix is in `AGENTS.md`, not in the code.
 
