@@ -47,4 +47,5 @@ If `AGENTS.md` has a section on the area, **read it before writing code**. Don't
 | `setup.md` | First-time setup — create `assets/profile.json` from the example template. |
 | `unslopping-rules.md` | Behavior-preserving removal of needless indirection, asserted unknown-data shapes, and handwritten boundary parsing, with explicit local-variable and false-positive exemptions. |
 | `unit-testing.md` | Mock I/O aggressively, never mock our own code. Determinism, structure, edge cases. |
+| `user-replies.md` | Replying to user reports: tracked issue before workarounds; ONE minimal workaround; never an unverified "should". |
 | `workstreams.md` | Plan-doc conventions, Linear integration, the workstream record template. |
